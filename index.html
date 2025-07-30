@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<title>Hello, world!</title>
+	<title>AR 3D Model Viewer</title>
 	<!-- include three.js library -->
 	<script src='js/three.js'></script>
 	<script src='js/OBJLoader.js'></script>
@@ -31,7 +31,7 @@ var arToolkitSource, arToolkitContext;
 
 var markerRoot1;
 
-var mesh1;
+var mesh1, mesh0;
 
 initialize();
 animate();
@@ -114,48 +114,147 @@ function initialize()
 		type: 'pattern', patternUrl: "data/hiro.patt",
 	})
 
+	// Background plane (optional - bisa dihapus jika tidak diperlukan)
 	let geometry1 = new THREE.PlaneBufferGeometry(1,1, 4,4);
-	let loader = new THREE.TextureLoader();
-	// let texture = loader.load( 'images/earth.jpg', render );
-	let material1 = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 0.5 } );
+	let material1 = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 0.3, transparent: true } );
 	mesh1 = new THREE.Mesh( geometry1, material1 );
 	mesh1.rotation.x = -Math.PI/2;
 	markerRoot1.add( mesh1 );
 	
-	function onProgress(xhr) { console.log( (xhr.loaded / xhr.total * 100) + '% loaded' ); }
-	function onError(xhr) { console.log( 'An error happened' ); }
+	// Progress and error handlers
+	function onProgress(xhr) { 
+		if (xhr.lengthComputable) {
+			console.log( (xhr.loaded / xhr.total * 100) + '% loaded' ); 
+		} else {
+			console.log('Loading model...');
+		}
+	}
 	
+	function onError(xhr) { 
+		console.log( 'An error happened loading the model:', xhr ); 
+	}
+	
+	// Load 3D model dengan file yang Anda miliki
+	loadModel();
+}
+
+function loadModel() {
+	// Coba load dengan material.mtl terlebih dahulu
 	new THREE.MTLLoader()
 		.setPath( 'models/' )
-		.load( 'fish-2.mtl', function ( materials ) {
+		.load( 'material.mtl', function ( materials ) {
 			materials.preload();
+			console.log('MTL loaded successfully');
+			
 			new THREE.OBJLoader()
 				.setMaterials( materials )
 				.setPath( 'models/' )
-				.load( 'fish-2.obj', function ( group ) {
-					mesh0 = group.children[0];
-					mesh0.material.side = THREE.DoubleSide;
-					mesh0.position.y = 0.25;
-					mesh0.scale.set(0.25,0.25,0.25);
+				.load( 'model.obj', function ( group ) {
+					console.log('OBJ loaded successfully');
+					
+					// Jika group memiliki children, ambil yang pertama
+					if (group.children && group.children.length > 0) {
+						mesh0 = group.children[0];
+					} else {
+						mesh0 = group;
+					}
+					
+					// Setup material properties
+					if (mesh0.material) {
+						mesh0.material.side = THREE.DoubleSide;
+					}
+					
+					// Position and scale the model
+					mesh0.position.set(0, 0.25, 0);
+					mesh0.scale.set(0.25, 0.25, 0.25);
+					
+					// Add to marker
 					markerRoot1.add(mesh0);
+					
 				}, onProgress, onError );
+				
+		}, onProgress, function(error) {
+			console.log('Failed to load material.mtl, trying material.mtl.bak');
+			
+			// Jika material.mtl gagal, coba material.mtl.bak
+			new THREE.MTLLoader()
+				.setPath( 'models/' )
+				.load( 'material.mtl.bak', function ( materials ) {
+					materials.preload();
+					console.log('MTL.BAK loaded successfully');
+					
+					new THREE.OBJLoader()
+						.setMaterials( materials )
+						.setPath( 'models/' )
+						.load( 'model.obj', function ( group ) {
+							console.log('OBJ loaded successfully with backup MTL');
+							
+							if (group.children && group.children.length > 0) {
+								mesh0 = group.children[0];
+							} else {
+								mesh0 = group;
+							}
+							
+							if (mesh0.material) {
+								mesh0.material.side = THREE.DoubleSide;
+							}
+							
+							mesh0.position.set(0, 0.25, 0);
+							mesh0.scale.set(0.25, 0.25, 0.25);
+							markerRoot1.add(mesh0);
+							
+						}, onProgress, onError );
+						
+				}, onProgress, function(error2) {
+					console.log('Both MTL files failed, loading OBJ without materials');
+					
+					// Jika kedua MTL gagal, load OBJ tanpa materials
+					new THREE.OBJLoader()
+						.setPath( 'models/' )
+						.load( 'model.obj', function ( group ) {
+							console.log('OBJ loaded without materials');
+							
+							if (group.children && group.children.length > 0) {
+								mesh0 = group.children[0];
+							} else {
+								mesh0 = group;
+							}
+							
+							// Apply default material jika tidak ada material
+							if (!mesh0.material) {
+								mesh0.material = new THREE.MeshLambertMaterial({ 
+									color: 0x00ff00,
+									side: THREE.DoubleSide 
+								});
+							} else {
+								mesh0.material.side = THREE.DoubleSide;
+							}
+							
+							mesh0.position.set(0, 0.25, 0);
+							mesh0.scale.set(0.25, 0.25, 0.25);
+							markerRoot1.add(mesh0);
+							
+						}, onProgress, onError );
+				});
 		});
 }
-
 
 function update()
 {
 	// update artoolkit on every frame
 	if ( arToolkitSource.ready !== false )
 		arToolkitContext.update( arToolkitSource.domElement );
+		
+	// Optional: rotate the model
+	if (mesh0) {
+		mesh0.rotation.y += 0.01;
+	}
 }
-
 
 function render()
 {
 	renderer.render( scene, camera );
 }
-
 
 function animate()
 {
