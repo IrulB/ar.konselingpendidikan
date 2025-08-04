@@ -1,172 +1,295 @@
 <!DOCTYPE html>
+<html>
 <head>
-	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<title>Hello, world!</title>
-	<!-- include three.js library -->
-	<script src='js/three.js'></script>
-	<script src='js/OBJLoader.js'></script>
-	<script src='js/MTLLoader.js'></script>
-	<!-- include jsartookit -->
-	<script src="jsartoolkit5/artoolkit.min.js"></script>
-	<script src="jsartoolkit5/artoolkit.api.js"></script>
-	<!-- include threex.artoolkit -->
-	<script src="threex/threex-artoolkitsource.js"></script>
-	<script src="threex/threex-artoolkitcontext.js"></script>
-	<script src="threex/threex-arbasecontrols.js"></script>
-	<script src="threex/threex-armarkercontrols.js"></script>
+	<title>Karir - Dokter AR</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	
+	<style>
+		:root {
+			--primary-blue: #007bff;
+			--background-light: #f4f4f9;
+			--card-background: #ffffff;
+			--text-dark: #333333;
+			--text-light: #ffffff;
+			--shadow: 0 4px 8px rgba(0,0,0,0.1);
+		}
+
+		body {
+			margin: 0;
+			overflow: hidden;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+			background-color: var(--background-light);
+			display: flex;
+			flex-direction: column;
+			height: 100vh;
+		}
+
+		/* Header Aplikasi */
+		.app-header {
+			background-color: var(--primary-blue);
+			color: var(--text-light);
+			padding: 15px 20px;
+			display: flex;
+			align-items: center;
+			flex-shrink: 0;
+		}
+
+		.app-header .back-arrow {
+			font-size: 24px;
+			font-weight: bold;
+			cursor: pointer;
+			margin-right: 15px;
+		}
+
+		.app-header .title {
+			font-size: 20px;
+			font-weight: 600;
+			margin: 0;
+		}
+		
+		/* Area untuk menampilkan AR */
+		.ar-viewport {
+			flex-grow: 1;
+			position: relative;
+			background-color: #000000;
+			overflow: hidden;
+		}
+		
+		/* Memastikan canvas AR mengisi area viewport */
+		.ar-viewport > canvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100% !important;
+			height: 100% !important;
+		}
+
+		/* Kontainer untuk informasi di bawah */
+		.info-container {
+			background-color: var(--background-light);
+			padding: 20px;
+			flex-shrink: 0;
+		}
+
+		/* Kartu Informasi */
+		.info-card {
+			background-color: var(--card-background);
+			border-radius: 12px;
+			padding: 16px;
+			box-shadow: var(--shadow);
+		}
+		
+		.info-card h2 {
+			font-size: 18px;
+			color: var(--text-dark);
+			margin-top: 0;
+			margin-bottom: 12px;
+		}
+
+		.profession-details {
+			display: flex;
+			align-items: center;
+		}
+
+		.profession-details .icon {
+			font-size: 24px;
+			margin-right: 12px;
+			color: var(--primary-blue);
+		}
+
+		.profession-details .text-content h3 {
+			margin: 0;
+			font-size: 16px;
+			font-weight: 600;
+			color: var(--text-dark);
+		}
+
+		.profession-details .text-content p {
+			margin: 4px 0 0;
+			font-size: 14px;
+			color: #666;
+			line-height: 1.4;
+		}
+		
+		/* Tombol Berikutnya */
+		.next-button {
+			display: block;
+			width: 100%;
+			background-color: #e9ecef;
+			border: none;
+			border-radius: 25px;
+			padding: 12px;
+			font-size: 16px;
+			font-weight: 600;
+			color: var(--text-dark);
+			text-align: center;
+			cursor: pointer;
+			margin-top: 20px;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+		}
+
+	</style>
+	
+	<script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r123/build/three.min.js'></script>
+	<script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r123/examples/js/loaders/OBJLoader.js'></script>
+	<script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r123/examples/js/loaders/MTLLoader.js'></script>
+	<script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@2.2.2/three.js/vendor/jsartoolkit5/artoolkit.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@2.2.2/three.js/vendor/jsartoolkit5/artoolkit.api.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@2.2.2/three.js/src/threex/threex-artoolkitsource.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@2.2.2/three.js/src/threex/threex-artoolkitcontext.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@2.2.2/three.js/src/threex/threex-arbasecontrols.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@2.2.2/three.js/src/threex/threex-armarkercontrols.js"></script>
 </head>
 
-<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
-
-<!-- 
-  Example created by Lee Stemkoski: https://github.com/stemkoski
-  Based on the AR.js library and examples created by Jerome Etienne: https://github.com/jeromeetienne/AR.js/
--->
-
-<script>
-
-var scene, camera, renderer, clock, deltaTime, totalTime;
-
-var arToolkitSource, arToolkitContext;
-
-var markerRoot1;
-
-var mesh1;
-
-initialize();
-animate();
-
-function initialize()
-{
-	scene = new THREE.Scene();
-
-	let ambientLight = new THREE.AmbientLight( 0xcccccc, 1.0 );
-	scene.add( ambientLight );
-				
-	camera = new THREE.Camera();
-	scene.add(camera);
-
-	renderer = new THREE.WebGLRenderer({
-		antialias : true,
-		alpha: true
-	});
-	renderer.setClearColor(new THREE.Color('lightgrey'), 0)
-	renderer.setSize( 640, 480 );
-	renderer.domElement.style.position = 'absolute'
-	renderer.domElement.style.top = '0px'
-	renderer.domElement.style.left = '0px'
-	document.body.appendChild( renderer.domElement );
-
-	clock = new THREE.Clock();
-	deltaTime = 0;
-	totalTime = 0;
+<body>
 	
-	////////////////////////////////////////////////////////////
-	// setup arToolkitSource
-	////////////////////////////////////////////////////////////
+	<header class="app-header">
+		<span class="back-arrow">&larr;</span>
+		<h1 class="title">Karir</h1>
+	</header>
 
-	arToolkitSource = new THREEx.ArToolkitSource({
-		sourceType : 'webcam',
-	});
+	<main class="ar-viewport" id="ar-view">
+		</main>
 
-	function onResize()
-	{
-		arToolkitSource.onResize()	
-		arToolkitSource.copySizeTo(renderer.domElement)	
-		if ( arToolkitContext.arController !== null )
-		{
-			arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
-		}	
-	}
+	<footer class="info-container">
+		<div class="info-card">
+			<h2>S1 Kedokteran</h2>
+			<div class="profession-details">
+				<span class="icon">🩺</span> <div class="text-content">
+					<h3>Dokter</h3>
+					<p>Seorang dokter bertanggung jawab menegakkan diagnosis dan merawat pasien dengan...</p>
+				</div>
+			</div>
+		</div>
+		<button class="next-button">BERIKUTNYA</button>
+	</footer>
 
-	arToolkitSource.init(function onReady(){
-		onResize()
-	});
-	
-	// handle resize event
-	window.addEventListener('resize', function(){
-		onResize()
-	});
-	
-	////////////////////////////////////////////////////////////
-	// setup arToolkitContext
-	////////////////////////////////////////////////////////////	
+	<script>
+		var scene, camera, renderer, clock, deltaTime, totalTime;
+		var arToolkitSource, arToolkitContext;
+		var markerRoot1, mesh1;
 
-	// create atToolkitContext
-	arToolkitContext = new THREEx.ArToolkitContext({
-		cameraParametersUrl: 'data/camera_para.dat',
-		detectionMode: 'mono'
-	});
-	
-	// copy projection matrix to camera when initialization complete
-	arToolkitContext.init( function onCompleted(){
-		camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
-	});
+		initialize();
+		animate();
 
-	////////////////////////////////////////////////////////////
-	// setup markerRoots
-	////////////////////////////////////////////////////////////
+		function initialize() {
+			scene = new THREE.Scene();
+			let ambientLight = new THREE.AmbientLight(0xcccccc, 1.0);
+			scene.add(ambientLight);
+			camera = new THREE.Camera();
+			scene.add(camera);
 
-	// build markerControls
-	markerRoot1 = new THREE.Group();
-	scene.add(markerRoot1);
-	let markerControls1 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
-		type: 'pattern', patternUrl: "data/hiro.patt",
-	})
+			renderer = new THREE.WebGLRenderer({
+				antialias: true,
+				alpha: true
+			});
+			renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+			
+			// Mengambil ukuran dari container viewport AR
+			const arViewport = document.getElementById('ar-view');
+			renderer.setSize(arViewport.clientWidth, arViewport.clientHeight);
+			
+			renderer.domElement.style.position = 'absolute';
+			renderer.domElement.style.top = '0px';
+			renderer.domElement.style.left = '0px';
+			
+			// *** MODIFIKASI KUNCI ***
+			// Menambahkan canvas ke div .ar-viewport, bukan ke body
+			arViewport.appendChild(renderer.domElement);
 
-	let geometry1 = new THREE.PlaneBufferGeometry(1,1, 4,4);
-	let loader = new THREE.TextureLoader();
-	// let texture = loader.load( 'images/earth.jpg', render );
-	let material1 = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 0.5 } );
-	mesh1 = new THREE.Mesh( geometry1, material1 );
-	mesh1.rotation.x = -Math.PI/2;
-	markerRoot1.add( mesh1 );
-	
-	function onProgress(xhr) { console.log( (xhr.loaded / xhr.total * 100) + '% loaded' ); }
-	function onError(xhr) { console.log( 'An error happened' ); }
-	
-	new THREE.MTLLoader()
-		.setPath( 'models/' )
-		.load( 'materials.mtl', function ( materials ) {
-			materials.preload();
-			new THREE.OBJLoader()
-				.setMaterials( materials )
-				.setPath( 'models/' )
-				.load( 'model.obj', function ( group ) {
-					mesh0 = group.children[0];
-					mesh0.material.side = THREE.DoubleSide;
-					mesh0.position.y = 0.25;
-					mesh0.scale.set(0.25,0.25,0.25);
-					markerRoot1.add(mesh0);
-				}, onProgress, onError );
-		});
-}
+			clock = new THREE.Clock();
+			deltaTime = 0;
+			totalTime = 0;
 
+			arToolkitSource = new THREEx.ArToolkitSource({
+				sourceType: 'webcam',
+			});
 
-function update()
-{
-	// update artoolkit on every frame
-	if ( arToolkitSource.ready !== false )
-		arToolkitContext.update( arToolkitSource.domElement );
-}
+			function onResize() {
+				arToolkitSource.onResizeElement()	
+				arToolkitSource.copyElementSizeTo(renderer.domElement)	
+				if (arToolkitContext.arController !== null) {
+					arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)	
+				}	
+			}
 
+			arToolkitSource.init(function onReady() {
+				setTimeout(() => { // delay kecil untuk memastikan layout stabil
+					onResize();
+				}, 100);
+			});
 
-function render()
-{
-	renderer.render( scene, camera );
-}
+			window.addEventListener('resize', function () {
+				onResize();
+			});
 
+			arToolkitContext = new THREEx.ArToolkitContext({
+				cameraParametersUrl: 'https://raw.githack.com/jeromeetienne/ar.js/master/three.js/examples/data/data/camera_para.dat',
+				detectionMode: 'mono'
+			});
 
-function animate()
-{
-	requestAnimationFrame(animate);
-	deltaTime = clock.getDelta();
-	totalTime += deltaTime;
-	update();
-	render();
-}
+			arToolkitContext.init(function onCompleted() {
+				camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+			});
 
-</script>
+			markerRoot1 = new THREE.Group();
+			scene.add(markerRoot1);
+			
+			new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
+				type: 'pattern',
+				patternUrl: 'https://raw.githack.com/jeromeetienne/ar.js/master/three.js/examples/data/data/patt.hiro',
+			});
+			
+			// Placeholder box sederhana (seperti di kode asli)
+			let geometry1 = new THREE.BoxBufferGeometry(1,1,1);
+			let material1 = new THREE.MeshNormalMaterial({
+				transparent: true,
+				opacity: 0.7,
+				side: THREE.DoubleSide
+			});
+			mesh1 = new THREE.Mesh( geometry1, material1 );
+			mesh1.position.y = 0.5;
+			markerRoot1.add( mesh1 );
+			
+			// Kode untuk memuat model .obj dan .mtl tetap sama
+			// Pastikan path ke model Anda benar atau ganti dengan URL jika dihosting online
+			// function onProgress(xhr) { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); }
+			// function onError(xhr) { console.log('An error happened'); }
+			
+			// new THREE.MTLLoader()
+			// 	.setPath('models/') // Ganti dengan path ke model Anda
+			// 	.load('materials.mtl', function (materials) {
+			// 		materials.preload();
+			// 		new THREE.OBJLoader()
+			// 			.setMaterials(materials)
+			// 			.setPath('models/') // Ganti dengan path ke model Anda
+			// 			.load('model.obj', function (group) {
+			// 				markerRoot1.remove(mesh1); // Hapus placeholder box
+			// 				let loadedMesh = group;
+			// 				loadedMesh.position.y = 0.5; // Sesuaikan posisi jika perlu
+			// 				loadedMesh.scale.set(0.25, 0.25, 0.25); // Sesuaikan skala jika perlu
+			// 				markerRoot1.add(loadedMesh);
+			// 			}, onProgress, onError);
+			// 	});
+		}
+
+		function update() {
+			if (arToolkitSource.ready !== false)
+				arToolkitContext.update(arToolkitSource.domElement);
+		}
+
+		function render() {
+			renderer.render(scene, camera);
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+			deltaTime = clock.getDelta();
+			totalTime += deltaTime;
+			update();
+			render();
+		}
+	</script>
 
 </body>
 </html>
