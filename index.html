@@ -2,446 +2,411 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR Graduation Character - Custom Image Target</title>
-    <!-- include three.js library -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'></script>
-    <!-- include AR.js -->
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/three.js/build/ar-threejs-location-only.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/three.js/build/ar-nft.js"></script>
+    <title>AR Graduation Character - Fixed</title>
+    
+    <!-- A-Frame and AR.js -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar-nft.js"></script>
     
     <style>
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden;
             font-family: Arial, sans-serif;
-            background: #000;
         }
         
         #info {
-            position: absolute;
+            position: fixed;
             top: 20px;
             left: 20px;
             color: white;
             background: rgba(0,0,0,0.8);
             padding: 15px;
             border-radius: 10px;
-            z-index: 100;
+            z-index: 999;
             max-width: 300px;
             font-size: 14px;
         }
         
         #loading {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
-            border-radius: 10px;
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
+            z-index: 1000;
         }
         
         .hidden {
-            display: none;
+            display: none !important;
+        }
+
+        #cameraButton {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        #cameraButton:hover {
+            background: #1976D2;
         }
     </style>
 </head>
 
 <body>
     <div id="loading">
-        <h3>🎓 Loading AR...</h3>
-        <p>Mohon tunggu, sedang memuat AR...</p>
+        <h3>🎓 Memuat AR...</h3>
+        <p>Mohon tunggu sebentar...</p>
+        <div style="margin-top: 15px;">
+            <div style="width: 200px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;">
+                <div id="progressBar" style="width: 0%; height: 100%; background: #2196F3; transition: width 0.3s;"></div>
+            </div>
+        </div>
     </div>
     
-    <div id="info">
+    <div id="info" class="hidden">
         <h4>📱 Cara Penggunaan:</h4>
-        <p><strong>1.</strong> Arahkan kamera ke gambar karakter wisuda yang Anda sediakan</p>
-        <p><strong>2.</strong> Karakter 3D akan muncul di atas gambar</p>
-        <p><strong>3.</strong> Gerakkan HP untuk melihat dari berbagai sudut</p>
-        <p><strong>Status:</strong> <span id="status">Mencari gambar target...</span></p>
+        <p><strong>1.</strong> Tekan tombol "Aktifkan Kamera"</p>
+        <p><strong>2.</strong> Arahkan kamera ke marker Hiro (kotak hitam)</p>
+        <p><strong>3.</strong> Karakter wisuda 3D akan muncul!</p>
+        <p><strong>Status:</strong> <span id="status">Siap memulai AR</span></p>
     </div>
 
+    <button id="cameraButton">🎥 Aktifkan Kamera</button>
+
+    <!-- A-Frame AR Scene -->
+    <a-scene
+        id="arScene"
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true;"
+        style="display: none;">
+        
+        <a-assets>
+            <!-- Preload any assets here if needed -->
+        </a-assets>
+
+        <!-- Camera -->
+        <a-camera gps-camera rotation-reader></a-camera>
+
+        <!-- Marker with Graduation Character -->
+        <a-marker preset="hiro" id="hiroMarker">
+            <!-- Graduation Character Group -->
+            <a-entity id="graduationCharacter" position="0 0 0" scale="1 1 1">
+                
+                <!-- Body (Graduation Gown) -->
+                <a-cylinder 
+                    position="0 0.3 0" 
+                    radius-top="0.15" 
+                    radius-bottom="0.25" 
+                    height="0.6" 
+                    color="#1a237e"
+                    shadow="cast: true">
+                </a-cylinder>
+
+                <!-- White Collar -->
+                <a-cylinder 
+                    position="0 0.55 0" 
+                    radius="0.18" 
+                    height="0.1" 
+                    color="white">
+                </a-cylinder>
+
+                <!-- Head -->
+                <a-sphere 
+                    position="0 0.75 0" 
+                    radius="0.14" 
+                    color="#ffdbac"
+                    shadow="cast: true">
+                </a-sphere>
+
+                <!-- Eyes -->
+                <a-sphere 
+                    position="-0.05 0.8 0.12" 
+                    radius="0.02" 
+                    color="black">
+                </a-sphere>
+                <a-sphere 
+                    position="0.05 0.8 0.12" 
+                    radius="0.02" 
+                    color="black">
+                </a-sphere>
+
+                <!-- Smile -->
+                <a-torus 
+                    position="0 0.72 0.12" 
+                    radius="0.04" 
+                    radius-tubular="0.01" 
+                    arc="180" 
+                    color="#ff1744"
+                    rotation="0 0 180">
+                </a-torus>
+
+                <!-- Hair -->
+                <a-sphere 
+                    position="0 0.82 0" 
+                    radius="0.15" 
+                    color="#3e2723"
+                    scale="1 0.7 1">
+                </a-sphere>
+
+                <!-- Graduation Cap Base -->
+                <a-cylinder 
+                    position="0 0.9 0" 
+                    radius="0.16" 
+                    height="0.04" 
+                    color="black"
+                    shadow="cast: true">
+                </a-cylinder>
+
+                <!-- Graduation Cap Board -->
+                <a-box 
+                    position="0 0.93 0" 
+                    width="0.36" 
+                    height="0.02" 
+                    depth="0.36" 
+                    color="black"
+                    shadow="cast: true">
+                </a-box>
+
+                <!-- Tassel -->
+                <a-cylinder 
+                    position="0.16 0.9 0.16" 
+                    radius="0.005" 
+                    height="0.08" 
+                    color="#ffc107"
+                    animation="property: rotation; to: 0 0 20; dur: 2000; dir: alternate; loop: true">
+                </a-cylinder>
+                <a-sphere 
+                    position="0.16 0.86 0.16" 
+                    radius="0.016" 
+                    color="#ffc107">
+                </a-sphere>
+
+                <!-- Arms -->
+                <a-cylinder 
+                    position="-0.2 0.4 0" 
+                    radius="0.04" 
+                    height="0.36" 
+                    color="#1a237e"
+                    rotation="0 0 30"
+                    shadow="cast: true">
+                </a-cylinder>
+                <a-cylinder 
+                    position="0.2 0.4 0" 
+                    radius="0.04" 
+                    height="0.36" 
+                    color="#1a237e"
+                    rotation="0 0 -30"
+                    shadow="cast: true">
+                </a-cylinder>
+
+                <!-- Hands -->
+                <a-sphere 
+                    position="-0.26 0.22 0" 
+                    radius="0.05" 
+                    color="#ffdbac">
+                </a-sphere>
+                <a-sphere 
+                    position="0.26 0.22 0" 
+                    radius="0.05" 
+                    color="#ffdbac">
+                </a-sphere>
+
+                <!-- Diploma -->
+                <a-box 
+                    position="0.26 0.22 0.06" 
+                    width="0.16" 
+                    height="0.12" 
+                    depth="0.004" 
+                    color="#d32f2f"
+                    shadow="cast: true">
+                </a-box>
+
+                <!-- Legs -->
+                <a-cylinder 
+                    position="-0.1 -0.2 0" 
+                    radius="0.05" 
+                    height="0.4" 
+                    color="#1976d2"
+                    shadow="cast: true">
+                </a-cylinder>
+                <a-cylinder 
+                    position="0.1 -0.2 0" 
+                    radius="0.05" 
+                    height="0.4" 
+                    color="#1976d2"
+                    shadow="cast: true">
+                </a-cylinder>
+
+                <!-- Shoes -->
+                <a-box 
+                    position="-0.1 -0.42 0.04" 
+                    width="0.1" 
+                    height="0.06" 
+                    depth="0.16" 
+                    color="black"
+                    shadow="cast: true">
+                </a-box>
+                <a-box 
+                    position="0.1 -0.42 0.04" 
+                    width="0.1" 
+                    height="0.06" 
+                    depth="0.16" 
+                    color="black"
+                    shadow="cast: true">
+                </a-box>
+
+                <!-- Animation for the whole character -->
+                <a-animation
+                    attribute="rotation"
+                    to="0 360 0"
+                    dur="8000"
+                    repeat="indefinite">
+                </a-animation>
+
+                <!-- Bobbing animation -->
+                <a-animation
+                    attribute="position"
+                    to="0 0.1 0"
+                    dur="2000"
+                    dir="alternate"
+                    repeat="indefinite">
+                </a-animation>
+
+            </a-entity>
+        </a-marker>
+
+    </a-scene>
+
     <script>
-        let scene, camera, renderer, clock;
-        let arToolkitSource, arToolkitContext, markerRoot;
-        let graduationCharacter;
-        let isModelLoaded = false;
+        let arScene;
+        let cameraActivated = false;
+        let progressInterval;
 
-        // Initialize AR
-        init();
-        animate();
-
-        function init() {
-            console.log("Initializing AR with custom image target...");
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            arScene = document.querySelector('#arScene');
             
-            // Hide loading screen after a moment
+            // Start progress bar
+            startProgressBar();
+            
+            // Setup camera button
+            document.getElementById('cameraButton').addEventListener('click', activateCamera);
+            
+            // Hide loading after 3 seconds
             setTimeout(() => {
                 document.getElementById('loading').classList.add('hidden');
-            }, 2000);
+                document.getElementById('info').classList.remove('hidden');
+                document.getElementById('status').textContent = 'Tekan tombol untuk memulai';
+            }, 3000);
+        });
 
-            // Create scene
-            scene = new THREE.Scene();
-
-            // Setup lighting
-            setupLighting();
-
-            // Create camera
-            camera = new THREE.Camera();
-            scene.add(camera);
-
-            // Create renderer
-            renderer = new THREE.WebGLRenderer({
-                antialias: true,
-                alpha: true
-            });
-            renderer.setClearColor(new THREE.Color('lightgrey'), 0);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.domElement.style.position = 'absolute';
-            renderer.domElement.style.top = '0px';
-            renderer.domElement.style.left = '0px';
-            document.body.appendChild(renderer.domElement);
-
-            // Initialize clock
-            clock = new THREE.Clock();
-
-            // Setup AR
-            setupAR();
-        }
-
-        function setupLighting() {
-            // Ambient light
-            const ambientLight = new THREE.AmbientLight(0x666666, 0.8);
-            scene.add(ambientLight);
-
-            // Directional light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            directionalLight.position.set(1, 1, 1).normalize();
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            scene.add(directionalLight);
-
-            // Additional light for better visibility
-            const pointLight = new THREE.PointLight(0xffffff, 0.5);
-            pointLight.position.set(0, 2, 0);
-            scene.add(pointLight);
-        }
-
-        function setupAR() {
-            // Setup AR toolkit source (camera)
-            arToolkitSource = new THREEx.ArToolkitSource({
-                sourceType: 'webcam',
-                sourceWidth: window.innerWidth,
-                sourceHeight: window.innerHeight,
-                displayWidth: window.innerWidth,
-                displayHeight: window.innerHeight,
-            });
-
-            // Handle resize
-            function onResize() {
-                arToolkitSource.onResize();
-                arToolkitSource.copySizeTo(renderer.domElement);
-                if (arToolkitContext.arController !== null) {
-                    arToolkitSource.copySizeTo(arToolkitContext.arController.canvas);
+        function startProgressBar() {
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            
+            progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
                 }
-            }
-
-            arToolkitSource.init(function onReady() {
-                onResize();
-                document.getElementById('status').textContent = 'Kamera siap, arahkan ke gambar target...';
-            });
-
-            // Handle resize event
-            window.addEventListener('resize', function() {
-                onResize();
-            });
-
-            // Setup AR toolkit context
-            arToolkitContext = new THREEx.ArToolkitContext({
-                cameraParametersUrl: createCameraParameters(),
-                detectionMode: 'mono',
-                maxDetectionRate: 30,
-                canvasWidth: 80 * 3,
-                canvasHeight: 60 * 3,
-            });
-
-            // Initialize context
-            arToolkitContext.init(function onCompleted() {
-                camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
-                console.log('AR context initialized');
-            });
-
-            // Create marker root
-            markerRoot = new THREE.Group();
-            scene.add(markerRoot);
-
-            // Setup marker controls - using image tracking
-            const markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
-                type: 'pattern',
-                patternUrl: createPatternFromImage(), // This will use your uploaded image
-                changeMatrixMode: 'cameraTransformMatrix'
-            });
-
-            // Create graduation character when marker is detected
-            markerControls.addEventListener('markerFound', function() {
-                console.log('Image target found!');
-                document.getElementById('status').textContent = 'Target ditemukan! Karakter muncul...';
-                if (!isModelLoaded) {
-                    createGraduationCharacter();
-                    isModelLoaded = true;
-                }
-            });
-
-            markerControls.addEventListener('markerLost', function() {
-                console.log('Image target lost');
-                document.getElementById('status').textContent = 'Target hilang, cari gambar target...';
-            });
+                progressBar.style.width = progress + '%';
+            }, 200);
         }
 
-        // Create camera parameters (simplified)
-        function createCameraParameters() {
-            // Create a data URL for camera parameters
-            const cameraParams = `ARToolKit param
-640 480
-318.5 318.5 320 240
--0.34641 0.12290 0.00000 0.00000
-1.00000`;
+        function activateCamera() {
+            if (cameraActivated) return;
             
-            return 'data:text/plain;base64,' + btoa(cameraParams);
-        }
-
-        // Create pattern from your uploaded image
-        function createPatternFromImage() {
-            // This is a simplified pattern data - in real implementation,
-            // you would need to generate this from your actual image
-            // For now, using a default pattern structure
-            const patternData = generatePatternData();
-            return 'data:text/plain;base64,' + btoa(patternData);
-        }
-
-        function generatePatternData() {
-            // Generate a simple pattern based on the graduation character image
-            // This is a simplified version - normally you'd use AR.js pattern generator
-            let pattern = '';
-            for (let i = 0; i < 16; i++) {
-                for (let j = 0; j < 16; j++) {
-                    // Create a pattern that represents the graduation character
-                    if ((i >= 5 && i <= 10) && (j >= 5 && j <= 10)) {
-                        pattern += '255 255 255\n'; // White for character area
-                    } else if ((i >= 4 && i <= 11) && (j >= 4 && j <= 11)) {
-                        pattern += '100 100 200\n'; // Blue for gown
-                    } else {
-                        pattern += '0 0 0\n'; // Black background
-                    }
-                }
-            }
-            return pattern;
-        }
-
-        function createGraduationCharacter() {
-            console.log("Creating 3D graduation character...");
+            cameraActivated = true;
+            const button = document.getElementById('cameraButton');
+            const status = document.getElementById('status');
             
-            graduationCharacter = new THREE.Group();
+            button.textContent = '📹 Mengaktifkan...';
+            button.disabled = true;
+            status.textContent = 'Meminta izin kamera...';
 
-            // Body (graduation gown) - Navy blue
-            const bodyGeometry = new THREE.CylinderGeometry(0.08, 0.12, 0.3, 12);
-            const bodyMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0x1a237e // Deep navy blue
-            });
-            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-            body.position.y = 0.15;
-            body.castShadow = true;
-            graduationCharacter.add(body);
-
-            // White collar/stole
-            const collarGeometry = new THREE.CylinderGeometry(0.09, 0.09, 0.05, 12);
-            const collarMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0xffffff 
-            });
-            const collar = new THREE.Mesh(collarGeometry, collarMaterial);
-            collar.position.y = 0.28;
-            graduationCharacter.add(collar);
-
-            // Head - skin tone
-            const headGeometry = new THREE.SphereGeometry(0.07, 16, 16);
-            const headMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0xffdbac 
-            });
-            const head = new THREE.Mesh(headGeometry, headMaterial);
-            head.position.y = 0.38;
-            head.castShadow = true;
-            graduationCharacter.add(head);
-
-            // Eyes
-            const eyeGeometry = new THREE.SphereGeometry(0.01, 8, 8);
-            const eyeMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-            
-            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-            leftEye.position.set(-0.025, 0.4, 0.06);
-            graduationCharacter.add(leftEye);
-            
-            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-            rightEye.position.set(0.025, 0.4, 0.06);
-            graduationCharacter.add(rightEye);
-
-            // Smile
-            const smileGeometry = new THREE.TorusGeometry(0.02, 0.005, 4, 8, Math.PI);
-            const smileMaterial = new THREE.MeshLambertMaterial({ color: 0xff1744 });
-            const smile = new THREE.Mesh(smileGeometry, smileMaterial);
-            smile.position.set(0, 0.36, 0.06);
-            smile.rotation.z = Math.PI;
-            graduationCharacter.add(smile);
-
-            // Hair
-            const hairGeometry = new THREE.SphereGeometry(0.075, 16, 16);
-            const hairMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0x3e2723 // Dark brown
-            });
-            const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-            hair.position.y = 0.42;
-            hair.scale.set(1, 0.7, 1);
-            graduationCharacter.add(hair);
-
-            // Graduation cap base
-            const capBaseGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.02, 16);
-            const capBaseMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-            const capBase = new THREE.Mesh(capBaseGeometry, capBaseMaterial);
-            capBase.position.y = 0.46;
-            capBase.castShadow = true;
-            graduationCharacter.add(capBase);
-
-            // Graduation cap board (square)
-            const capBoardGeometry = new THREE.BoxGeometry(0.18, 0.01, 0.18);
-            const capBoardMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-            const capBoard = new THREE.Mesh(capBoardGeometry, capBoardMaterial);
-            capBoard.position.y = 0.48;
-            capBoard.castShadow = true;
-            graduationCharacter.add(capBoard);
-
-            // Golden tassel
-            const tasselStringGeometry = new THREE.CylinderGeometry(0.001, 0.001, 0.04, 6);
-            const tasselStringMaterial = new THREE.MeshLambertMaterial({ color: 0xffc107 });
-            const tasselString = new THREE.Mesh(tasselStringGeometry, tasselStringMaterial);
-            tasselString.position.set(0.08, 0.46, 0.08);
-            graduationCharacter.add(tasselString);
-
-            const tasselEndGeometry = new THREE.SphereGeometry(0.008, 8, 8);
-            const tasselEndMaterial = new THREE.MeshLambertMaterial({ color: 0xffc107 });
-            const tasselEnd = new THREE.Mesh(tasselEndGeometry, tasselEndMaterial);
-            tasselEnd.position.set(0.08, 0.44, 0.08);
-            graduationCharacter.add(tasselEnd);
-
-            // Arms
-            const armGeometry = new THREE.CylinderGeometry(0.02, 0.025, 0.18, 8);
-            const armMaterial = new THREE.MeshLambertMaterial({ color: 0x1a237e });
-            
-            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-            leftArm.position.set(-0.1, 0.2, 0);
-            leftArm.rotation.z = Math.PI / 6;
-            leftArm.castShadow = true;
-            graduationCharacter.add(leftArm);
-
-            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-            rightArm.position.set(0.1, 0.2, 0);
-            rightArm.rotation.z = -Math.PI / 6;
-            rightArm.castShadow = true;
-            graduationCharacter.add(rightArm);
-
-            // Hands
-            const handGeometry = new THREE.SphereGeometry(0.025, 12, 12);
-            const handMaterial = new THREE.MeshLambertMaterial({ color: 0xffdbac });
-            
-            const leftHand = new THREE.Mesh(handGeometry, handMaterial);
-            leftHand.position.set(-0.13, 0.11, 0);
-            graduationCharacter.add(leftHand);
-
-            const rightHand = new THREE.Mesh(handGeometry, handMaterial);
-            rightHand.position.set(0.13, 0.11, 0);
-            graduationCharacter.add(rightHand);
-
-            // Red diploma certificate
-            const diplomaGeometry = new THREE.BoxGeometry(0.08, 0.06, 0.002);
-            const diplomaMaterial = new THREE.MeshLambertMaterial({ color: 0xd32f2f });
-            const diploma = new THREE.Mesh(diplomaGeometry, diplomaMaterial);
-            diploma.position.set(0.13, 0.11, 0.03);
-            diploma.castShadow = true;
-            graduationCharacter.add(diploma);
-
-            // Legs (simple)
-            const legGeometry = new THREE.CylinderGeometry(0.025, 0.03, 0.2, 8);
-            const legMaterial = new THREE.MeshLambertMaterial({ color: 0x1976d2 }); // Blue jeans
-            
-            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-            leftLeg.position.set(-0.05, -0.1, 0);
-            leftLeg.castShadow = true;
-            graduationCharacter.add(leftLeg);
-
-            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-            rightLeg.position.set(0.05, -0.1, 0);
-            rightLeg.castShadow = true;
-            graduationCharacter.add(rightLeg);
-
-            // Black shoes
-            const shoeGeometry = new THREE.BoxGeometry(0.05, 0.03, 0.08);
-            const shoeMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-            
-            const leftShoe = new THREE.Mesh(shoeGeometry, shoeMaterial);
-            leftShoe.position.set(-0.05, -0.21, 0.02);
-            leftShoe.castShadow = true;
-            graduationCharacter.add(leftShoe);
-
-            const rightShoe = new THREE.Mesh(shoeGeometry, shoeMaterial);
-            rightShoe.position.set(0.05, -0.21, 0.02);
-            rightShoe.castShadow = true;
-            graduationCharacter.add(rightShoe);
-
-            // Position and scale the character
-            graduationCharacter.position.set(0, 0.2, 0);
-            graduationCharacter.scale.set(2, 2, 2); // Make it bigger for better visibility
-
-            markerRoot.add(graduationCharacter);
-            
-            console.log("Graduation character created and added to marker!");
-            document.getElementById('status').textContent = 'Karakter berhasil dimuat!';
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Update AR
-            if (arToolkitSource && arToolkitSource.ready !== false) {
-                arToolkitContext.update(arToolkitSource.domElement);
-            }
-
-            // Animate character if loaded
-            if (graduationCharacter && isModelLoaded) {
-                const time = clock.getElapsedTime();
+            // Request camera permission
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            })
+            .then(function(stream) {
+                console.log('Camera permission granted');
+                status.textContent = 'Kamera aktif, cari marker Hiro...';
                 
-                // Gentle rotation
-                graduationCharacter.rotation.y = Math.sin(time * 0.5) * 0.3;
+                // Show AR scene
+                arScene.style.display = 'block';
                 
-                // Gentle bobbing motion
-                graduationCharacter.position.y = 0.2 + Math.sin(time * 2) * 0.05;
+                // Hide button
+                button.style.display = 'none';
                 
-                // Animate tassel
-                const tassel = graduationCharacter.children.find(child => 
-                    child.position.x === 0.08 && child.position.z === 0.08
-                );
-                if (tassel) {
-                    tassel.rotation.z = Math.sin(time * 3) * 0.2;
+                // Setup marker events
+                setupMarkerEvents();
+                
+            })
+            .catch(function(error) {
+                console.error('Camera error:', error);
+                status.textContent = 'Gagal mengakses kamera. Coba lagi.';
+                button.textContent = '🎥 Coba Lagi';
+                button.disabled = false;
+                cameraActivated = false;
+                
+                if (error.name === 'NotAllowedError') {
+                    status.textContent = 'Izin kamera ditolak. Refresh halaman dan coba lagi.';
+                } else if (error.name === 'NotFoundError') {
+                    status.textContent = 'Kamera tidak ditemukan.';
                 }
-            }
-
-            renderer.render(scene, camera);
+            });
         }
 
-        console.log("AR Graduation Character with custom image target loaded!");
+        function setupMarkerEvents() {
+            const marker = document.querySelector('#hiroMarker');
+            const status = document.getElementById('status');
+            
+            marker.addEventListener('markerFound', function() {
+                console.log('Marker found!');
+                status.textContent = '🎉 Marker ditemukan! Karakter muncul!';
+                status.style.background = 'rgba(76, 175, 80, 0.9)';
+            });
+
+            marker.addEventListener('markerLost', function() {
+                console.log('Marker lost');
+                status.textContent = '🔍 Cari marker Hiro (kotak hitam)...';
+                status.style.background = 'rgba(0,0,0,0.8)';
+            });
+        }
+
+        // Handle orientation changes
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                if (arScene && arScene.style.display !== 'none') {
+                    location.reload();
+                }
+            }, 500);
+        });
+
+        console.log('AR Graduation Character - Fixed Version loaded!');
     </script>
-
-    <!-- Include AR.js marker detection libraries -->
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/three.js/build/ar.js"></script>
 </body>
 </html>
