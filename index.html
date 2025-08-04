@@ -1,412 +1,352 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR Graduation Character - Fixed</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>AR Graduation Character - Simple Version</title>
     
-    <!-- A-Frame and AR.js -->
+    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar-nft.js"></script>
+    <!-- AR.js -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     
     <style>
         body {
             margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
+            background: #000;
         }
         
         #info {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
             color: white;
             background: rgba(0,0,0,0.8);
             padding: 15px;
             border-radius: 10px;
             z-index: 999;
-            max-width: 300px;
             font-size: 14px;
-        }
-        
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border-radius: 15px;
             text-align: center;
-            z-index: 1000;
         }
         
-        .hidden {
-            display: none !important;
-        }
-
-        #cameraButton {
+        #instructions {
             position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2196F3;
+            bottom: 20px;
+            left: 10px;
+            right: 10px;
             color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
+            background: rgba(33, 150, 243, 0.9);
+            padding: 15px;
+            border-radius: 10px;
             z-index: 999;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+            font-size: 14px;
+            text-align: center;
         }
 
-        #cameraButton:hover {
-            background: #1976D2;
+        .status-found {
+            background: rgba(76, 175, 80, 0.9) !important;
+        }
+
+        .status-lost {
+            background: rgba(244, 67, 54, 0.9) !important;
         }
     </style>
 </head>
 
 <body>
-    <div id="loading">
-        <h3>🎓 Memuat AR...</h3>
-        <p>Mohon tunggu sebentar...</p>
-        <div style="margin-top: 15px;">
-            <div style="width: 200px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;">
-                <div id="progressBar" style="width: 0%; height: 100%; background: #2196F3; transition: width 0.3s;"></div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="info" class="hidden">
-        <h4>📱 Cara Penggunaan:</h4>
-        <p><strong>1.</strong> Tekan tombol "Aktifkan Kamera"</p>
-        <p><strong>2.</strong> Arahkan kamera ke marker Hiro (kotak hitam)</p>
-        <p><strong>3.</strong> Karakter wisuda 3D akan muncul!</p>
-        <p><strong>Status:</strong> <span id="status">Siap memulai AR</span></p>
+    <div id="info">
+        <div><strong>🎓 AR Karakter Wisuda</strong></div>
+        <div id="status">Memuat AR... Mohon tunggu</div>
     </div>
 
-    <button id="cameraButton">🎥 Aktifkan Kamera</button>
+    <div id="instructions">
+        <strong>📋 Instruksi:</strong><br>
+        1. Izinkan akses kamera<br>
+        2. Cari dan download "Hiro Marker" di Google<br>
+        3. Print marker atau tampilkan di layar lain<br>
+        4. Arahkan kamera ke marker Hiro
+    </div>
 
     <!-- A-Frame AR Scene -->
     <a-scene
-        id="arScene"
         embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-        vr-mode-ui="enabled: false"
-        renderer="logarithmicDepthBuffer: true;"
-        style="display: none;">
-        
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; patternRatio: 0.8; trackingMethod: best;"
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true; colorManagement: true; sortObjects: true;"
+        device-orientation-permission-ui="enabled: false">
+
+        <!-- Assets -->
         <a-assets>
-            <!-- Preload any assets here if needed -->
+            <!-- No external assets needed -->
         </a-assets>
 
         <!-- Camera -->
-        <a-camera gps-camera rotation-reader></a-camera>
+        <a-entity camera></a-entity>
 
-        <!-- Marker with Graduation Character -->
-        <a-marker preset="hiro" id="hiroMarker">
-            <!-- Graduation Character Group -->
-            <a-entity id="graduationCharacter" position="0 0 0" scale="1 1 1">
+        <!-- Hiro Marker -->
+        <a-marker preset="hiro" id="markerHiro">
+            
+            <!-- Graduation Character -->
+            <a-entity id="graduationChar" position="0 0.5 0" scale="0.8 0.8 0.8">
                 
-                <!-- Body (Graduation Gown) -->
+                <!-- Body (Graduation Gown) - Dark Blue -->
                 <a-cylinder 
-                    position="0 0.3 0" 
+                    position="0 0 0" 
                     radius-top="0.15" 
                     radius-bottom="0.25" 
                     height="0.6" 
                     color="#1a237e"
-                    shadow="cast: true">
+                    material="roughness: 0.7; metalness: 0.1">
                 </a-cylinder>
 
-                <!-- White Collar -->
-                <a-cylinder 
-                    position="0 0.55 0" 
-                    radius="0.18" 
-                    height="0.1" 
-                    color="white">
-                </a-cylinder>
+                <!-- White Collar/Stole -->
+                <a-ring 
+                    position="0 0.25 0" 
+                    radius-inner="0.12" 
+                    radius-outer="0.18" 
+                    color="white"
+                    rotation="-90 0 0">
+                </a-ring>
 
-                <!-- Head -->
+                <!-- Head - Skin Color -->
                 <a-sphere 
-                    position="0 0.75 0" 
-                    radius="0.14" 
+                    position="0 0.45 0" 
+                    radius="0.12" 
                     color="#ffdbac"
-                    shadow="cast: true">
+                    material="roughness: 0.8">
                 </a-sphere>
 
                 <!-- Eyes -->
-                <a-sphere 
-                    position="-0.05 0.8 0.12" 
-                    radius="0.02" 
-                    color="black">
-                </a-sphere>
-                <a-sphere 
-                    position="0.05 0.8 0.12" 
-                    radius="0.02" 
-                    color="black">
-                </a-sphere>
+                <a-sphere position="-0.04 0.48 0.1" radius="0.015" color="#000"></a-sphere>
+                <a-sphere position="0.04 0.48 0.1" radius="0.015" color="#000"></a-sphere>
 
-                <!-- Smile -->
-                <a-torus 
-                    position="0 0.72 0.12" 
-                    radius="0.04" 
-                    radius-tubular="0.01" 
-                    arc="180" 
-                    color="#ff1744"
-                    rotation="0 0 180">
-                </a-torus>
+                <!-- Nose -->
+                <a-sphere position="0 0.45 0.11" radius="0.008" color="#e6a378"></a-sphere>
 
-                <!-- Hair -->
+                <!-- Mouth - Smile -->
+                <a-cylinder 
+                    position="0 0.42 0.1" 
+                    radius="0.02" 
+                    height="0.005" 
+                    color="#ff5722"
+                    rotation="0 0 90">
+                </a-cylinder>
+
+                <!-- Hair - Dark Brown -->
                 <a-sphere 
-                    position="0 0.82 0" 
-                    radius="0.15" 
+                    position="0 0.52 -0.02" 
+                    radius="0.13" 
                     color="#3e2723"
-                    scale="1 0.7 1">
+                    scale="1 0.8 0.9">
                 </a-sphere>
 
                 <!-- Graduation Cap Base -->
                 <a-cylinder 
-                    position="0 0.9 0" 
-                    radius="0.16" 
-                    height="0.04" 
-                    color="black"
-                    shadow="cast: true">
+                    position="0 0.58 0" 
+                    radius="0.13" 
+                    height="0.03" 
+                    color="#000"
+                    material="roughness: 0.9">
                 </a-cylinder>
 
-                <!-- Graduation Cap Board -->
+                <!-- Graduation Cap Board (Square Top) -->
                 <a-box 
-                    position="0 0.93 0" 
-                    width="0.36" 
+                    position="0 0.61 0" 
+                    width="0.3" 
                     height="0.02" 
-                    depth="0.36" 
-                    color="black"
-                    shadow="cast: true">
+                    depth="0.3" 
+                    color="#000"
+                    material="roughness: 0.9">
                 </a-box>
 
                 <!-- Tassel -->
                 <a-cylinder 
-                    position="0.16 0.9 0.16" 
-                    radius="0.005" 
-                    height="0.08" 
-                    color="#ffc107"
-                    animation="property: rotation; to: 0 0 20; dur: 2000; dir: alternate; loop: true">
+                    position="0.12 0.6 0.12" 
+                    radius="0.003" 
+                    height="0.06" 
+                    color="#ffc107">
                 </a-cylinder>
                 <a-sphere 
-                    position="0.16 0.86 0.16" 
-                    radius="0.016" 
+                    position="0.12 0.57 0.12" 
+                    radius="0.012" 
                     color="#ffc107">
                 </a-sphere>
 
-                <!-- Arms -->
+                <!-- Left Arm -->
                 <a-cylinder 
-                    position="-0.2 0.4 0" 
-                    radius="0.04" 
-                    height="0.36" 
+                    position="-0.18 0.1 0" 
+                    radius="0.035" 
+                    height="0.3" 
                     color="#1a237e"
-                    rotation="0 0 30"
-                    shadow="cast: true">
-                </a-cylinder>
-                <a-cylinder 
-                    position="0.2 0.4 0" 
-                    radius="0.04" 
-                    height="0.36" 
-                    color="#1a237e"
-                    rotation="0 0 -30"
-                    shadow="cast: true">
+                    rotation="0 0 25">
                 </a-cylinder>
 
-                <!-- Hands -->
+                <!-- Right Arm -->
+                <a-cylinder 
+                    position="0.18 0.1 0" 
+                    radius="0.035" 
+                    height="0.3" 
+                    color="#1a237e"
+                    rotation="0 0 -25">
+                </a-cylinder>
+
+                <!-- Left Hand -->
                 <a-sphere 
-                    position="-0.26 0.22 0" 
-                    radius="0.05" 
-                    color="#ffdbac">
-                </a-sphere>
-                <a-sphere 
-                    position="0.26 0.22 0" 
-                    radius="0.05" 
+                    position="-0.22 -0.05 0" 
+                    radius="0.04" 
                     color="#ffdbac">
                 </a-sphere>
 
-                <!-- Diploma -->
+                <!-- Right Hand with Diploma -->
+                <a-sphere 
+                    position="0.22 -0.05 0" 
+                    radius="0.04" 
+                    color="#ffdbac">
+                </a-sphere>
+
+                <!-- Diploma Certificate -->
                 <a-box 
-                    position="0.26 0.22 0.06" 
-                    width="0.16" 
-                    height="0.12" 
-                    depth="0.004" 
+                    position="0.25 -0.05 0.05" 
+                    width="0.12" 
+                    height="0.08" 
+                    depth="0.003" 
                     color="#d32f2f"
-                    shadow="cast: true">
+                    material="roughness: 0.6">
                 </a-box>
 
                 <!-- Legs -->
                 <a-cylinder 
-                    position="-0.1 -0.2 0" 
-                    radius="0.05" 
-                    height="0.4" 
-                    color="#1976d2"
-                    shadow="cast: true">
+                    position="-0.08 -0.35 0" 
+                    radius="0.04" 
+                    height="0.3" 
+                    color="#1976d2">
                 </a-cylinder>
                 <a-cylinder 
-                    position="0.1 -0.2 0" 
-                    radius="0.05" 
-                    height="0.4" 
-                    color="#1976d2"
-                    shadow="cast: true">
+                    position="0.08 -0.35 0" 
+                    radius="0.04" 
+                    height="0.3" 
+                    color="#1976d2">
                 </a-cylinder>
 
                 <!-- Shoes -->
                 <a-box 
-                    position="-0.1 -0.42 0.04" 
-                    width="0.1" 
-                    height="0.06" 
-                    depth="0.16" 
-                    color="black"
-                    shadow="cast: true">
+                    position="-0.08 -0.52 0.03" 
+                    width="0.08" 
+                    height="0.04" 
+                    depth="0.12" 
+                    color="#000">
                 </a-box>
                 <a-box 
-                    position="0.1 -0.42 0.04" 
-                    width="0.1" 
-                    height="0.06" 
-                    depth="0.16" 
-                    color="black"
-                    shadow="cast: true">
+                    position="0.08 -0.52 0.03" 
+                    width="0.08" 
+                    height="0.04" 
+                    depth="0.12" 
+                    color="#000">
                 </a-box>
 
-                <!-- Animation for the whole character -->
+                <!-- Animations -->
                 <a-animation
                     attribute="rotation"
                     to="0 360 0"
-                    dur="8000"
+                    dur="10000"
                     repeat="indefinite">
                 </a-animation>
 
-                <!-- Bobbing animation -->
                 <a-animation
                     attribute="position"
-                    to="0 0.1 0"
-                    dur="2000"
-                    dir="alternate"
+                    to="0 0.6 0"
+                    dur="3000"
+                    direction="alternate"
                     repeat="indefinite">
                 </a-animation>
 
             </a-entity>
+
+            <!-- Congratulations Text -->
+            <a-text 
+                value="SELAMAT WISUDA!"
+                position="0 1.2 0"
+                align="center"
+                color="#ffc107"
+                scale="0.5 0.5 0.5"
+                animation="property: rotation; to: 0 360 0; dur: 8000; loop: true">
+            </a-text>
+
+            <!-- Floating Stars Effect -->
+            <a-sphere position="-0.5 1 0.5" radius="0.02" color="#ffeb3b"
+                animation="property: position; to: -0.5 1.5 0.5; dur: 2000; dir: alternate; loop: true"></a-sphere>
+            <a-sphere position="0.5 1 0.5" radius="0.02" color="#ffeb3b"
+                animation="property: position; to: 0.5 1.5 0.5; dur: 2500; dir: alternate; loop: true"></a-sphere>
+            <a-sphere position="0 1 -0.5" radius="0.02" color="#ffeb3b"
+                animation="property: position; to: 0 1.5 -0.5; dur: 3000; dir: alternate; loop: true"></a-sphere>
+
         </a-marker>
 
     </a-scene>
 
     <script>
-        let arScene;
-        let cameraActivated = false;
-        let progressInterval;
-
-        // Initialize
+        // Wait for A-Frame to initialize
         document.addEventListener('DOMContentLoaded', function() {
-            arScene = document.querySelector('#arScene');
-            
-            // Start progress bar
-            startProgressBar();
-            
-            // Setup camera button
-            document.getElementById('cameraButton').addEventListener('click', activateCamera);
-            
-            // Hide loading after 3 seconds
-            setTimeout(() => {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('info').classList.remove('hidden');
-                document.getElementById('status').textContent = 'Tekan tombol untuk memulai';
-            }, 3000);
-        });
-
-        function startProgressBar() {
-            let progress = 0;
-            const progressBar = document.getElementById('progressBar');
-            
-            progressInterval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(progressInterval);
-                }
-                progressBar.style.width = progress + '%';
-            }, 200);
-        }
-
-        function activateCamera() {
-            if (cameraActivated) return;
-            
-            cameraActivated = true;
-            const button = document.getElementById('cameraButton');
+            const scene = document.querySelector('a-scene');
+            const marker = document.querySelector('#markerHiro');
             const status = document.getElementById('status');
-            
-            button.textContent = '📹 Mengaktifkan...';
-            button.disabled = true;
-            status.textContent = 'Meminta izin kamera...';
+            const info = document.getElementById('info');
 
-            // Request camera permission
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            })
-            .then(function(stream) {
-                console.log('Camera permission granted');
-                status.textContent = 'Kamera aktif, cari marker Hiro...';
-                
-                // Show AR scene
-                arScene.style.display = 'block';
-                
-                // Hide button
-                button.style.display = 'none';
-                
-                // Setup marker events
-                setupMarkerEvents();
-                
-            })
-            .catch(function(error) {
-                console.error('Camera error:', error);
-                status.textContent = 'Gagal mengakses kamera. Coba lagi.';
-                button.textContent = '🎥 Coba Lagi';
-                button.disabled = false;
-                cameraActivated = false;
-                
-                if (error.name === 'NotAllowedError') {
-                    status.textContent = 'Izin kamera ditolak. Refresh halaman dan coba lagi.';
-                } else if (error.name === 'NotFoundError') {
-                    status.textContent = 'Kamera tidak ditemukan.';
-                }
+            // Scene loaded
+            scene.addEventListener('loaded', function() {
+                console.log('A-Frame scene loaded');
+                status.textContent = 'AR siap! Cari marker Hiro...';
             });
-        }
 
-        function setupMarkerEvents() {
-            const marker = document.querySelector('#hiroMarker');
-            const status = document.getElementById('status');
-            
+            // Marker found
             marker.addEventListener('markerFound', function() {
-                console.log('Marker found!');
-                status.textContent = '🎉 Marker ditemukan! Karakter muncul!';
-                status.style.background = 'rgba(76, 175, 80, 0.9)';
-            });
-
-            marker.addEventListener('markerLost', function() {
-                console.log('Marker lost');
-                status.textContent = '🔍 Cari marker Hiro (kotak hitam)...';
-                status.style.background = 'rgba(0,0,0,0.8)';
-            });
-        }
-
-        // Handle orientation changes
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                if (arScene && arScene.style.display !== 'none') {
-                    location.reload();
+                console.log('Marker Hiro ditemukan!');
+                status.textContent = '🎉 Marker ditemukan! Selamat wisuda!';
+                info.className = 'status-found';
+                
+                // Play celebration sound (optional)
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBkPE7OEAAA==');
+                    audio.play().catch(() => {/* Ignore audio errors */});
+                } catch(e) {
+                    // Ignore audio errors
                 }
-            }, 500);
+            });
+
+            // Marker lost
+            marker.addEventListener('markerLost', function() {
+                console.log('Marker Hiro hilang');
+                status.textContent = 'Marker hilang. Cari lagi marker Hiro...';
+                info.className = 'status-lost';
+            });
+
+            // Camera error handling
+            scene.addEventListener('camera-error', function(error) {
+                console.error('Camera error:', error);
+                status.textContent = 'Error kamera. Refresh halaman.';
+                info.className = 'status-lost';
+            });
+
+            // AR.js initialization
+            scene.addEventListener('arjs-video-loaded', function() {
+                console.log('Kamera berhasil dimuat');
+                status.textContent = 'Kamera aktif! Cari marker Hiro...';
+            });
+
+            console.log('AR Graduation Character initialized');
         });
 
-        console.log('AR Graduation Character - Fixed Version loaded!');
+        // Handle visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('Page hidden');
+            } else {
+                console.log('Page visible');
+            }
+        });
     </script>
+
 </body>
 </html>
